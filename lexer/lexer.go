@@ -17,6 +17,7 @@ func New(input string) *Lexer {
 }
 
 func (l *Lexer) readChar() {
+
 	// Check if we reached the end of the input string.
 	if l.readPosition >= len(l.input) {
 		// If we reached the end of the input string, set ch to 0, which is the
@@ -34,6 +35,22 @@ func (l *Lexer) readChar() {
 	l.readPosition += 1
 }
 
+func (l *Lexer) peekChar() byte {
+
+	// Check if we reached the end of the input string.
+	if l.readPosition >= len(l.input) {
+		// If we reached the end of the input string, return 0, which is the
+		// ASCII code for the "NUL" character.
+		return 0
+	} else {
+		// If we haven't reached the end of the input string, return the
+		// ASCII code of the character at the current read position.
+		return l.input[l.readPosition]
+	}
+
+	// Note that we do not increment l.position and l.readPosition here.
+}
+
 func (l *Lexer) NextToken() token.Token {
 
 	var tok token.Token
@@ -46,47 +63,40 @@ func (l *Lexer) NextToken() token.Token {
 	case '=':
 		tok = newToken(token.ASSIGN, l.ch)
 		// Check if the next character is '='.
-		/*
-			if l.peekChar() == '=' {
-				// If the next character is '=', we have a two-character token.
-				// Read the next character.
-				ch := l.ch
-				l.readChar()
+		if l.peekChar() == '=' {
+			// If the next character is '=', we have a two-character token.
+			// Read the next character.
+			ch := l.ch
+			l.readChar()
 
-				// Set the token type to EQ and the literal to "=="
-				tok = token.Token{Type: token.EQ, Literal: string(ch) + string(l.ch)}
-			} else {
-				// If the next character is not '=', we have a one-character token.
-				// Set the token type to ASSIGN and the literal to "=".
-				tok = newToken(token.ASSIGN, l.ch)
-			}
-		*/
+			// Set the token type to EQ and the literal to "=="
+			tok = token.Token{Type: token.EQ, Literal: string(ch) + string(l.ch)}
+		} else {
+			// If the next character is not '=', we have a one-character token.
+			// Set the token type to ASSIGN and the literal to "=".
+			tok = newToken(token.ASSIGN, l.ch)
+		}
 	case '+':
 		// Set the token type to PLUS and the literal to "+".
 		tok = newToken(token.PLUS, l.ch)
 	case '-':
 		// Set the token type to MINUS and the literal to "-".
 		tok = newToken(token.MINUS, l.ch)
-	/*
-		case '!':
-			// Check if the next character is '='.
-			if l.peekChar() == '=' {
-				// If the next character is '=', we have a two-character token.
-				// Read the next character.
-				ch := l.ch
-				l.readChar()
-
-				// Set the token type to NE and the literal to "!="
-				tok = token.Token{Type: token.NE, Literal: string(ch) + string(l.ch)}
-			} else {
-				// If the next character is not '=', we have a one-character token.
-				// Set the token type to BANG and the literal to "!".
-				tok = newToken(token.BANG, l.ch)
-			}
-	*/
 	case '!':
-		// Set the token type to BANG and the literal to "!".
-		tok = newToken(token.BANG, l.ch)
+		// Check if the next character is '='.
+		if l.peekChar() == '=' {
+			// If the next character is '=', we have a two-character token.
+			// Read the next character.
+			ch := l.ch
+			l.readChar()
+
+			// Set the token type to NE and the literal to "!="
+			tok = token.Token{Type: token.NE, Literal: string(ch) + string(l.ch)}
+		} else {
+			// If the next character is not '=', we have a one-character token.
+			// Set the token type to BANG and the literal to "!".
+			tok = newToken(token.BANG, l.ch)
+		}
 	case '*':
 		// Set the token type to ASTER and the literal to "*".
 		tok = newToken(token.ASTER, l.ch)
