@@ -84,6 +84,9 @@ func (l *Lexer) NextToken() token.Token {
 				tok = newToken(token.BANG, l.ch)
 			}
 	*/
+	case '!':
+		// Set the token type to BANG and the literal to "!".
+		tok = newToken(token.BANG, l.ch)
 	case '*':
 		// Set the token type to ASTER and the literal to "*".
 		tok = newToken(token.ASTER, l.ch)

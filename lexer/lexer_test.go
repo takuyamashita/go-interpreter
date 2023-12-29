@@ -16,6 +16,14 @@ let add = fn(x, y) {
 };
 
 let result = add(five, ten);
+!-/*5;
+5 < 10 > 5;
+
+if (5 < 10) {
+	return true;
+} else {
+	return false;
+}
 `
 
 	tests := []struct {
@@ -38,39 +46,68 @@ let result = add(five, ten);
 		{token.LET, "let"},
 		{token.IDENT, "add"},
 		{token.ASSIGN, "="},
-		// fn(x, y) {
 		{token.FUNCTION, "fn"},
 		{token.LPAREN, "("},
-		// x, y
 		{token.IDENT, "x"},
 		{token.COMMA, ","},
 		{token.IDENT, "y"},
-		// )
 		{token.RPAREN, ")"},
-		// {
 		{token.LBRACE, "{"},
 		// x + y;
 		{token.IDENT, "x"},
 		{token.PLUS, "+"},
 		{token.IDENT, "y"},
 		{token.SEMICOLON, ";"},
-		// }
+		// };
 		{token.RBRACE, "}"},
 		{token.SEMICOLON, ";"},
 		// let result = add(five, ten);
 		{token.LET, "let"},
 		{token.IDENT, "result"},
 		{token.ASSIGN, "="},
-		// add(five, ten);
 		{token.IDENT, "add"},
 		{token.LPAREN, "("},
-		// five, ten
 		{token.IDENT, "five"},
 		{token.COMMA, ","},
 		{token.IDENT, "ten"},
-		// )
 		{token.RPAREN, ")"},
 		{token.SEMICOLON, ";"},
+		// !-/*5;
+		{token.BANG, "!"},
+		{token.MINUS, "-"},
+		{token.SLASH, "/"},
+		{token.ASTER, "*"},
+		{token.INT, "5"},
+		{token.SEMICOLON, ";"},
+		// 5 < 10 > 5;
+		{token.INT, "5"},
+		{token.LT, "<"},
+		{token.INT, "10"},
+		{token.GT, ">"},
+		{token.INT, "5"},
+		{token.SEMICOLON, ";"},
+		// if (5 < 10) {
+		{token.IF, "if"},
+		{token.LPAREN, "("},
+		{token.INT, "5"},
+		{token.LT, "<"},
+		{token.INT, "10"},
+		{token.RPAREN, ")"},
+		{token.LBRACE, "{"},
+		// return true;
+		{token.RETURN, "return"},
+		{token.TRUE, "true"},
+		{token.SEMICOLON, ";"},
+		// } else {
+		{token.RBRACE, "}"},
+		{token.ELSE, "else"},
+		{token.LBRACE, "{"},
+		// return false;
+		{token.RETURN, "return"},
+		{token.FALSE, "false"},
+		{token.SEMICOLON, ";"},
+		// }
+		{token.RBRACE, "}"},
 		// EOF
 		{token.EOF, ""},
 	}
