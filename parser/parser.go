@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"fmt"
+
 	"github.com/takuyamashita/go-interpreter/ast"
 	"github.com/takuyamashita/go-interpreter/lexer"
 	"github.com/takuyamashita/go-interpreter/token"
@@ -12,11 +14,16 @@ type Parser struct {
 	// curToken and peekToken are the current token and the next token.
 	curToken  token.Token
 	peekToken token.Token
+
+	errors []string
 }
 
 func New(l *lexer.Lexer) *Parser {
 
-	p := &Parser{l: l}
+	p := &Parser{
+		l:      l,
+		errors: []string{},
+	}
 
 	// Read two tokens, so curToken and peekToken are both set.
 	p.nextToken()
@@ -90,7 +97,6 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 
 	for !p.curTokenIs(token.SEMICOLON) {
 
-		// End of the statement.
 		// Read the next token.
 		p.nextToken()
 	}
@@ -120,7 +126,22 @@ func (p *Parser) expectPeek(t token.TokenType) bool {
 	} else {
 
 		// If it is not, add an error to the parser.
-		//p.peekError(t)
+		p.peekError(t)
 		return false
 	}
+}
+
+func (p *Parser) Errors() []string {
+
+	return p.errors
+}
+
+func (p *Parser) peekError(t token.TokenType) {
+
+	// Create an error message.
+	msg := "expected next token to be %s, got %s instead"
+	msg = fmt.Sprintf(msg, t, p.peekToken.Type)
+
+	// Add the error to the parser.
+	p.errors = append(p.errors, msg)
 }
