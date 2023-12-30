@@ -8,6 +8,17 @@ import (
 	"github.com/takuyamashita/go-interpreter/token"
 )
 
+const (
+	_ int = iota
+	LOWEST
+	EQUALS      // ==
+	LESSGREATER // > or <
+	SUM         // +
+	PRODUCT     // *
+	PREFIX      // -X or !X
+	CALL        // myFunction(X)
+)
+
 type Parser struct {
 	l      *lexer.Lexer
 	errors []string
@@ -27,6 +38,10 @@ func New(l *lexer.Lexer) *Parser {
 		errors: []string{},
 	}
 
+	// Register prefix parse functions.
+	p.prefixParseFns = make(map[token.TokenType]prefixParseFn)
+	p.registerPrefix(token.IDENT, p.parseIdentifier)
+
 	// Read two tokens, so curToken and peekToken are both set.
 	p.nextToken()
 	p.nextToken()
@@ -41,6 +56,11 @@ func (p *Parser) nextToken() {
 
 	// Read the next token.
 	p.peekToken = p.l.NextToken()
+}
+
+func (p *Parser) parseIdentifier() ast.Expression {
+
+	return &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
 }
 
 func (p *Parser) ParseProgram() *ast.Program {
@@ -77,8 +97,42 @@ func (p *Parser) parseStatement() ast.Statement {
 	case token.RETURN:
 		return p.parseReturnStatement()
 	default:
+		return p.parseExpressionStatement()
+	}
+}
+
+func (p *Parser) parseExpression(precedence int) ast.Expression {
+
+	// Check if the current token type has a prefix parse function.
+	prefix := p.prefixParseFns[p.curToken.Type]
+	if prefix == nil {
+
+		// If it does not, add an error to the parser.
 		return nil
 	}
+
+	// Call the prefix parse function.
+	leftExp := prefix()
+
+	return leftExp
+}
+
+func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
+
+	// Create a new ExpressionStatement AST node.
+	stmt := &ast.ExpressionStatement{Token: p.curToken}
+
+	// Parse the expression.
+	stmt.Expression = p.parseExpression(LOWEST)
+
+	// Check if the next token is a ";".
+	if p.peekTokenIs(token.SEMICOLON) {
+
+		// Read the next token.
+		p.nextToken()
+	}
+
+	return stmt
 }
 
 func (p *Parser) parseLetStatement() *ast.LetStatement {
