@@ -20,6 +20,20 @@ const (
 	CALL        // myFunction(X)
 )
 
+var (
+	precedences = map[token.TokenType]int{
+		token.EQ:     EQUALS,
+		token.NOT_EQ: EQUALS,
+		token.LT:     LESSGREATER,
+		token.GT:     LESSGREATER,
+		token.PLUS:   SUM,
+		token.MINUS:  SUM,
+		token.SLASH:  PRODUCT,
+		token.ASTER:  PRODUCT,
+		token.MOD:    PRODUCT,
+	}
+)
+
 type Parser struct {
 	l      *lexer.Lexer
 	errors []string
@@ -46,6 +60,18 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.BANG, p.parsePrefixExpression)
 	p.registerPrefix(token.MINUS, p.parsePrefixExpression)
 
+	// Rgister infix parse functions.
+	p.infixParseFns = make(map[token.TokenType]infixParseFn)
+	p.registerInfix(token.PLUS, p.parseInfixExpression)
+	p.registerInfix(token.MINUS, p.parseInfixExpression)
+	p.registerInfix(token.SLASH, p.parseInfixExpression)
+	p.registerInfix(token.ASTER, p.parseInfixExpression)
+	p.registerInfix(token.MOD, p.parseInfixExpression)
+	p.registerInfix(token.EQ, p.parseInfixExpression)
+	p.registerInfix(token.NOT_EQ, p.parseInfixExpression)
+	p.registerInfix(token.LT, p.parseInfixExpression)
+	p.registerInfix(token.GT, p.parseInfixExpression)
+
 	// Read two tokens, so curToken and peekToken are both set.
 	p.nextToken()
 	p.nextToken()
@@ -60,6 +86,32 @@ func (p *Parser) nextToken() {
 
 	// Read the next token.
 	p.peekToken = p.l.NextToken()
+}
+
+func (p *Parser) peekPrecedence() int {
+
+	// Check if the precedence exists in the map.
+	if p, ok := precedences[p.peekToken.Type]; ok {
+
+		// If it does, return it.
+		return p
+	}
+
+	// If it does not, return LOWEST.
+	return LOWEST
+}
+
+func (p *Parser) curPrecedence() int {
+
+	// Check if the precedence exists in the map.
+	if p, ok := precedences[p.curToken.Type]; ok {
+
+		// If it does, return it.
+		return p
+	}
+
+	// If it does not, return LOWEST.
+	return LOWEST
 }
 
 func (p *Parser) parseIdentifier() ast.Expression {
@@ -118,6 +170,26 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 
 	// Call the prefix parse function.
 	leftExp := prefix()
+
+	// Loop through the tokens until we reach a semicolon or the precedence is
+	// lower than the next precedence.
+	for !p.peekTokenIs(token.SEMICOLON) && precedence < p.peekPrecedence() {
+
+		// Check if the next token type has an infix parse function.
+		infix := p.infixParseFns[p.peekToken.Type]
+
+		if infix == nil {
+
+			// If it does not, return the left-hand side expression.
+			return leftExp
+		}
+
+		// Read the next token.
+		p.nextToken()
+
+		// Call the infix parse function.
+		leftExp = infix(leftExp)
+	}
 
 	return leftExp
 }
@@ -200,6 +272,29 @@ func (p *Parser) parsePrefixExpression() ast.Expression {
 
 	// Parse the right-hand side of the expression.
 	expression.Right = p.parseExpression(PREFIX)
+
+	return expression
+}
+
+func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
+
+	// 5 + 5, 5 - 5, etc.
+
+	// Create a new InfixExpression AST node.
+	expression := &ast.InfixExpression{
+		Token:    p.curToken, // The operator token, e.g. +, -, *, /, etc.
+		Operator: p.curToken.Literal,
+		Left:     left,
+	}
+
+	// Get the current precedence.
+	precedence := p.curPrecedence()
+
+	// Read the next token.
+	p.nextToken()
+
+	// Parse the right-hand side of the expression.
+	expression.Right = p.parseExpression(precedence)
 
 	return expression
 }

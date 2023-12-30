@@ -18,10 +18,10 @@ const (
 	SLASH  = "/"
 	MOD    = "%"
 
-	LT = "<"
-	GT = ">"
-	EQ = "=="
-	NE = "!="
+	LT     = "<"
+	GT     = ">"
+	EQ     = "=="
+	NOT_EQ = "!="
 
 	// Delimiters
 	COMMA     = ","

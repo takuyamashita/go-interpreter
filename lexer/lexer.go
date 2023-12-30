@@ -91,7 +91,7 @@ func (l *Lexer) NextToken() token.Token {
 			l.readChar()
 
 			// Set the token type to NE and the literal to "!="
-			tok = token.Token{Type: token.NE, Literal: string(ch) + string(l.ch)}
+			tok = token.Token{Type: token.NOT_EQ, Literal: string(ch) + string(l.ch)}
 		} else {
 			// If the next character is not '=', we have a one-character token.
 			// Set the token type to BANG and the literal to "!".
