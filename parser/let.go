@@ -7,25 +7,33 @@ import (
 
 func (p *Parser) parseLetStatement() *ast.LetStatement {
 
-	// Create a new LetStatement AST node.
+	// let x = 5;
+	//  ^curToken
+
 	stmt := &ast.LetStatement{Token: p.curToken}
 
-	// Check if the next token is an identifier.
 	if !p.expectPeek(token.IDENT) {
 		return nil
 	}
+	// let x = 5;
+	//     ^curToken
 
-	// Set the identifier name.
 	stmt.Name = &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
 
-	// Check if the next token is an "=".
 	if !p.expectPeek(token.ASSIGN) {
 		return nil
 	}
+	// let x = 5;
+	//       ^curToken
 
-	for !p.curTokenIs(token.SEMICOLON) {
+	p.nextToken()
+	// let x = 5;
+	//         ^curToken
 
-		// Read the next token.
+	stmt.Value = p.parseExpression(LOWEST)
+
+	if p.peekTokenIs(token.SEMICOLON) {
+
 		p.nextToken()
 	}
 

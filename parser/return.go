@@ -7,16 +7,24 @@ import (
 
 func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 
-	// Create a new ReturnStatement AST node.
+	// return 5 + 10;
+	//  ^curToken
+
 	stmt := &ast.ReturnStatement{Token: p.curToken}
 
-	// Read the next token.
 	p.nextToken()
+	// return 5 + 10;
+	//        ^curToken
 
-	for !p.curTokenIs(token.SEMICOLON) {
+	stmt.ReturnValue = p.parseExpression(LOWEST)
 
-		// Read the next token.
+	if p.peekTokenIs(token.SEMICOLON) {
+
 		p.nextToken()
+		// return 5 + 10;
+		//              ^curToken
+
+		return stmt
 	}
 
 	return stmt
