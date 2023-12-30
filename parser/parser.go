@@ -30,6 +30,7 @@ var (
 		token.SLASH:  PRODUCT,
 		token.ASTER:  PRODUCT,
 		token.MOD:    PRODUCT,
+		token.LPAREN: CALL,
 	}
 )
 
@@ -82,6 +83,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfix(token.NOT_EQ, p.parseInfixExpression)
 	p.registerInfix(token.LT, p.parseInfixExpression)
 	p.registerInfix(token.GT, p.parseInfixExpression)
+	p.registerInfix(token.LPAREN, p.parseCallExpression)
 
 	// Read two tokens, so curToken and peekToken are both set.
 	p.nextToken()
