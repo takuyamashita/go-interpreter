@@ -9,13 +9,15 @@ import (
 )
 
 type Parser struct {
-	l *lexer.Lexer
+	l      *lexer.Lexer
+	errors []string
 
 	// curToken and peekToken are the current token and the next token.
 	curToken  token.Token
 	peekToken token.Token
 
-	errors []string
+	prefixParseFns map[token.TokenType]prefixParseFn
+	infixParseFns  map[token.TokenType]infixParseFn
 }
 
 func New(l *lexer.Lexer) *Parser {
@@ -164,3 +166,18 @@ func (p *Parser) peekError(t token.TokenType) {
 	// Add the error to the parser.
 	p.errors = append(p.errors, msg)
 }
+
+func (p *Parser) registerPrefix(tokenType token.TokenType, fn prefixParseFn) {
+
+	p.prefixParseFns[tokenType] = fn
+}
+
+func (p *Parser) registerInfix(tokenType token.TokenType, fn infixParseFn) {
+
+	p.infixParseFns[tokenType] = fn
+}
+
+type (
+	prefixParseFn func() ast.Expression
+	infixParseFn  func(ast.Expression) ast.Expression
+)
