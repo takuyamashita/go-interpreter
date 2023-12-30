@@ -656,6 +656,40 @@ func TestCallExpressionParsing(t *testing.T) {
 	testInfixExpression(t, exp.Arguments[2], 4, "+", 5)
 }
 
+func TestCallExpressionParameterParsing(t *testing.T) {
+
+	tests := []struct {
+		input          string
+		expectedParams []string
+	}{
+		{"add();", []string{}},
+		{"add(x);", []string{"x"}},
+		{"add(x, y, z);", []string{"x", "y", "z"}},
+	}
+
+	for _, tt := range tests {
+
+		l := lexer.New(tt.input)
+		p := New(l)
+
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		stmt := program.Statements[0].(*ast.ExpressionStatement)
+		exp := stmt.Expression.(*ast.CallExpression)
+
+		if len(exp.Arguments) != len(tt.expectedParams) {
+
+			t.Errorf("length parameters wrong. want %d, got=%d\n", len(tt.expectedParams), len(exp.Arguments))
+		}
+
+		for i, ident := range tt.expectedParams {
+
+			testLiteralExpression(t, exp.Arguments[i], ident)
+		}
+	}
+}
+
 func checkParserErrors(t *testing.T, p *Parser) {
 
 	errors := p.Errors()
