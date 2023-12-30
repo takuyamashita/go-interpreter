@@ -299,6 +299,31 @@ func TestParsingInfixExpressions(t *testing.T) {
 	}
 }
 
+func TestDebug(t *testing.T) {
+
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{"5 + 3 * 2", "(5 + (3 * 2))"},
+	}
+
+	for _, tt := range tests {
+
+		l := lexer.New(tt.input)
+		p := New(l)
+
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		actual := program.String()
+		if actual != tt.expected {
+
+			t.Errorf("expected=%q, got=%q", tt.expected, actual)
+		}
+	}
+}
+
 func TestOperatorPrecedenceParsing(t *testing.T) {
 
 	tests := []struct {

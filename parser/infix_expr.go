@@ -4,8 +4,6 @@ import "github.com/takuyamashita/go-interpreter/ast"
 
 func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 
-	// 5 + 5, 5 - 5, etc.
-
 	// Create a new InfixExpression AST node.
 	expression := &ast.InfixExpression{
 		Token:    p.curToken, // The operator token, e.g. +, -, *, /, etc.

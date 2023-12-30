@@ -52,14 +52,19 @@ func New(l *lexer.Lexer) *Parser {
 		errors: []string{},
 	}
 
-	// Register prefix parse functions.
+	// 前置構文解析関数のマップを初期化する。
 	p.prefixParseFns = make(map[token.TokenType]prefixParseFn)
+	// e.g foo
 	p.registerPrefix(token.IDENT, p.parseIdentifier)
+	// e.g 5
 	p.registerPrefix(token.INT, p.parseIntegerLiteral)
+	// e.g !, -
 	p.registerPrefix(token.BANG, p.parsePrefixExpression)
 	p.registerPrefix(token.MINUS, p.parsePrefixExpression)
+	// e.g true, false
 	p.registerPrefix(token.TRUE, p.parseBoolean)
 	p.registerPrefix(token.FALSE, p.parseBoolean)
+	// e.g (5 + 5)
 	p.registerPrefix(token.LPAREN, p.parseGroupedExpression)
 
 	// Rgister infix parse functions.
@@ -118,22 +123,18 @@ func (p *Parser) curPrecedence() int {
 
 func (p *Parser) ParseProgram() *ast.Program {
 
-	// Create a new Program AST node.
 	program := &ast.Program{}
 	program.Statements = []ast.Statement{}
 
-	// Loop through all the tokens until we reach the end of the input.
 	for p.curToken.Type != token.EOF {
 
-		// Parse the current statement.
 		stmt := p.parseStatement()
+
 		if stmt != nil {
 
-			// Add the statement to the program's statements.
 			program.Statements = append(program.Statements, stmt)
 		}
 
-		// Read the next token.
 		p.nextToken()
 	}
 
@@ -142,13 +143,14 @@ func (p *Parser) ParseProgram() *ast.Program {
 
 func (p *Parser) parseStatement() ast.Statement {
 
-	// Check the current token type and call the appropriate function to parse
-	// the statement.
 	switch p.curToken.Type {
+
 	case token.LET:
 		return p.parseLetStatement()
+
 	case token.RETURN:
 		return p.parseReturnStatement()
+
 	default:
 		return p.parseExpressionStatement()
 	}
@@ -156,7 +158,7 @@ func (p *Parser) parseStatement() ast.Statement {
 
 func (p *Parser) parseExpression(precedence int) ast.Expression {
 
-	// Check if the current token type has a prefix parse function.
+	// prefix is the prefix parse function for the current token type.
 	prefix := p.prefixParseFns[p.curToken.Type]
 	if prefix == nil {
 
@@ -165,26 +167,69 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 		return nil
 	}
 
-	// Call the prefix parse function.
+	//
+	// e.g 5 + 3 * 2;
+	//
+	// [first loop]
+	// 	leftExp = 5
+	// 	precedence = 1(LOWEST)
+	// 	peekPrecedence = 4(SUM)
+	// 	p.curToken = 5
+	//  p.peekToken = +
+	//
+	//  	nextToken()
+	// 		p.curToken = +
+	//  	p.peekToken = 3
+	//
+	//  	parseInfixExpression(5)
+	//
+	// 			curPrecedence = 4(SUM)
+	//
+	//         	nextToken()
+	// 			p.curToken = 3
+	//  		p.peekToken = *
+	//
+	//  		parseExpression(4)
+	//
+	//              [first loop]
+	//
+	//			    leftExp = 3
+	// 				precedence = 4(SUM)
+	// 				peekPrecedence = 5(PRODUCT)
+	// 				p.curToken = 3
+	//  			p.peekToken = *
+	//
+	//              nextToken()
+	// 				p.curToken = *
+	//  			p.peekToken = 2
+	//
+	//              parseInfixExpression(3)
+	//
+	//					curPrecedence = 5(PRODUCT)
+	//
+	//                	nextToken()
+	// 					p.curToken = 2
+	//  				p.peekToken = ;
+	//
+	//  				parseExpression(5)
+	//
+	//						leftExp = 2
+	// 						retrun 2 cuz semi colon
+	//
+
 	leftExp := prefix()
 
-	// Loop through the tokens until we reach a semicolon or the precedence is
-	// lower than the next precedence.
 	for !p.peekTokenIs(token.SEMICOLON) && precedence < p.peekPrecedence() {
 
-		// Check if the next token type has an infix parse function.
 		infix := p.infixParseFns[p.peekToken.Type]
 
 		if infix == nil {
 
-			// If it does not, return the left-hand side expression.
 			return leftExp
 		}
 
-		// Read the next token.
 		p.nextToken()
 
-		// Call the infix parse function.
 		leftExp = infix(leftExp)
 	}
 
