@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/takuyamashita/go-interpreter/ast"
 	"github.com/takuyamashita/go-interpreter/lexer"
@@ -41,6 +42,7 @@ func New(l *lexer.Lexer) *Parser {
 	// Register prefix parse functions.
 	p.prefixParseFns = make(map[token.TokenType]prefixParseFn)
 	p.registerPrefix(token.IDENT, p.parseIdentifier)
+	p.registerPrefix(token.INT, p.parseIntegerLiteral)
 
 	// Read two tokens, so curToken and peekToken are both set.
 	p.nextToken()
@@ -178,6 +180,28 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 	}
 
 	return stmt
+}
+
+func (p *Parser) parseIntegerLiteral() ast.Expression {
+
+	// Create a new IntegerLiteral AST node.
+	lit := &ast.IntegerLiteral{Token: p.curToken}
+
+	// Try to parse the literal as an integer.
+	value, err := strconv.ParseInt(p.curToken.Literal, 0, 64)
+	if err != nil {
+
+		// If it fails, add an error to the parser.
+		msg := fmt.Sprintf("could not parse %q as integer", p.curToken.Literal)
+		p.errors = append(p.errors, msg)
+
+		return nil
+	}
+
+	// Set the literal value.
+	lit.Value = value
+
+	return lit
 }
 
 func (p *Parser) curTokenIs(t token.TokenType) bool {
