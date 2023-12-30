@@ -66,6 +66,8 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.FALSE, p.parseBoolean)
 	// e.g (5 + 5)
 	p.registerPrefix(token.LPAREN, p.parseGroupedExpression)
+	// e.g if (x < y) { x } else { y }
+	p.registerPrefix(token.IF, p.parseIfExpression)
 
 	// Rgister infix parse functions.
 	p.infixParseFns = make(map[token.TokenType]infixParseFn)
