@@ -61,6 +61,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.MINUS, p.parsePrefixExpression)
 	p.registerPrefix(token.TRUE, p.parseBoolean)
 	p.registerPrefix(token.FALSE, p.parseBoolean)
+	p.registerPrefix(token.LPAREN, p.parseGroupedExpression)
 
 	// Rgister infix parse functions.
 	p.infixParseFns = make(map[token.TokenType]infixParseFn)
@@ -330,6 +331,22 @@ func (p *Parser) parseBoolean() ast.Expression {
 
 	// Set the boolean value.
 	expression.Value = p.curTokenIs(token.TRUE)
+
+	return expression
+}
+
+func (p *Parser) parseGroupedExpression() ast.Expression {
+
+	// Read the next token.
+	p.nextToken()
+
+	// Parse the expression.
+	expression := p.parseExpression(LOWEST)
+
+	// Check if the next token is ")".
+	if !p.expectPeek(token.RPAREN) {
+		return nil
+	}
 
 	return expression
 }
