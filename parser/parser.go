@@ -2,7 +2,6 @@ package parser
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/takuyamashita/go-interpreter/ast"
 	"github.com/takuyamashita/go-interpreter/lexer"
@@ -117,11 +116,6 @@ func (p *Parser) curPrecedence() int {
 	return LOWEST
 }
 
-func (p *Parser) parseIdentifier() ast.Expression {
-
-	return &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
-}
-
 func (p *Parser) ParseProgram() *ast.Program {
 
 	// Create a new Program AST node.
@@ -213,126 +207,6 @@ func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
 	}
 
 	return stmt
-}
-
-func (p *Parser) parseLetStatement() *ast.LetStatement {
-
-	// Create a new LetStatement AST node.
-	stmt := &ast.LetStatement{Token: p.curToken}
-
-	// Check if the next token is an identifier.
-	if !p.expectPeek(token.IDENT) {
-		return nil
-	}
-
-	// Set the identifier name.
-	stmt.Name = &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
-
-	// Check if the next token is an "=".
-	if !p.expectPeek(token.ASSIGN) {
-		return nil
-	}
-
-	for !p.curTokenIs(token.SEMICOLON) {
-
-		// Read the next token.
-		p.nextToken()
-	}
-
-	return stmt
-
-}
-
-func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
-
-	// Create a new ReturnStatement AST node.
-	stmt := &ast.ReturnStatement{Token: p.curToken}
-
-	// Read the next token.
-	p.nextToken()
-
-	for !p.curTokenIs(token.SEMICOLON) {
-
-		// Read the next token.
-		p.nextToken()
-	}
-
-	return stmt
-}
-
-func (p *Parser) parsePrefixExpression() ast.Expression {
-
-	// +1, -1, !true, !false, etc.
-
-	// Create a new PrefixExpression AST node.
-	expression := &ast.PrefixExpression{
-		Token:    p.curToken, // The prefix token, e.g. +, -, !
-		Operator: p.curToken.Literal,
-	}
-
-	// Read the next token.
-	p.nextToken()
-
-	// Parse the right-hand side of the expression.
-	expression.Right = p.parseExpression(PREFIX)
-
-	return expression
-}
-
-func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
-
-	// 5 + 5, 5 - 5, etc.
-
-	// Create a new InfixExpression AST node.
-	expression := &ast.InfixExpression{
-		Token:    p.curToken, // The operator token, e.g. +, -, *, /, etc.
-		Operator: p.curToken.Literal,
-		Left:     left,
-	}
-
-	// Get the current precedence.
-	precedence := p.curPrecedence()
-
-	// Read the next token.
-	p.nextToken()
-
-	// Parse the right-hand side of the expression.
-	expression.Right = p.parseExpression(precedence)
-
-	return expression
-}
-
-func (p *Parser) parseIntegerLiteral() ast.Expression {
-
-	// Create a new IntegerLiteral AST node.
-	lit := &ast.IntegerLiteral{Token: p.curToken}
-
-	// Try to parse the literal as an integer.
-	value, err := strconv.ParseInt(p.curToken.Literal, 0, 64)
-	if err != nil {
-
-		// If it fails, add an error to the parser.
-		msg := fmt.Sprintf("could not parse %q as integer", p.curToken.Literal)
-		p.errors = append(p.errors, msg)
-
-		return nil
-	}
-
-	// Set the literal value.
-	lit.Value = value
-
-	return lit
-}
-
-func (p *Parser) parseBoolean() ast.Expression {
-
-	// Create a new Boolean AST node.
-	expression := &ast.Boolean{Token: p.curToken}
-
-	// Set the boolean value.
-	expression.Value = p.curTokenIs(token.TRUE)
-
-	return expression
 }
 
 func (p *Parser) parseGroupedExpression() ast.Expression {
