@@ -73,7 +73,7 @@ func TestEvalBooleanExpression(t *testing.T) {
 	}
 }
 
-func testBooleanObject(t *testing.T, obj object.Object, expected bool) {
+func testBooleanObject(t *testing.T, obj object.Object, expected bool) bool {
 
 	result, ok := obj.(*object.Boolean)
 
@@ -82,7 +82,11 @@ func testBooleanObject(t *testing.T, obj object.Object, expected bool) {
 	}
 
 	if result.Value != expected {
-		t.Errorf("object has wrong value. want=%t, got=%t",
-			expected, result.Value)
+
+		t.Errorf("object has wrong value. want=%t, got=%t", expected, result.Value)
+
+		return false
 	}
+
+	return true
 }
