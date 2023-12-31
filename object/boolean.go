@@ -1,5 +1,7 @@
 package object
 
+import "fmt"
+
 const (
 	BOOLEAN_OBJ ObjectType = "BOOLEAN"
 )
@@ -13,5 +15,5 @@ func (b *Boolean) Type() ObjectType {
 }
 
 func (b *Boolean) Inspect() string {
-	return b.Inspect()
+	return fmt.Sprintf("%t", b.Value)
 }
