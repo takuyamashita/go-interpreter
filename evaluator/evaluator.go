@@ -68,27 +68,17 @@ func evalProgram(program *ast.Program) object.Object {
 	return result
 }
 
-func evalStatements(stmts []ast.Statement) object.Object {
-
-	var result object.Object
-
-	for _, stmt := range stmts {
-
-		result = Eval(stmt)
-
-		// 1 + 2; 3 + 4;
-		// 1 + 2; return 3 + 4; <- this is valid and return 3 + 4
-		// 1 + 2; return 3; 4 + 5; <- this is not valid
-		if returnValue, ok := result.(*object.ReturnValue); ok {
-			return returnValue.Value
-		}
-
-	}
-
-	return result
-}
-
 func evalBlockStatement(block *ast.BlockStatement) object.Object {
+
+	// 	if (true) {
+	//
+	//		if (true) {
+	//
+	//			return 10; <- return this
+	//		}
+	//
+	//		return 20;
+	//	}
 
 	var result object.Object
 
