@@ -146,12 +146,10 @@ func (l *Lexer) NextToken() token.Token {
 	case ']':
 		// Set the token type to RBRACK and the literal to "]".
 		tok = newToken(token.RBRACK, l.ch)
-	/*
-		case '"':
-			// Set the token type to STRING and the literal to the string literal.
-			tok.Type = token.STRING
-			tok.Literal = l.readString()
-	*/
+	case '"':
+		// Set the token type to STRING and the literal to the string literal.
+		tok.Type = token.STRING
+		tok.Literal = l.readString()
 	case 0:
 		// Set the token type to EOF and the literal to "".
 		tok.Literal = ""
@@ -213,6 +211,29 @@ func (l *Lexer) readNumber() string {
 	}
 
 	// Return the string from the saved position to the current position.
+	return l.input[position:l.position]
+}
+
+func (l *Lexer) readString() string {
+
+	// "foobar"
+	// ^current position
+	position := l.position + 1
+
+	// Read characters until we encounter a double quote.
+	for {
+		l.readChar()
+		if l.ch == '"' || l.ch == 0 {
+			break
+		}
+	}
+
+	// "foobar"
+	//        ^current position
+
+	// Return the string from the saved position to the current position.
+	// ['"', 'f', 'o', 'o', 'b', 'a', 'r', '"']
+	// 		  ^ ---------------------- ^
 	return l.input[position:l.position]
 }
 
