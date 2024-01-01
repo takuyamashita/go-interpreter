@@ -29,6 +29,7 @@ if (5 < 10) {
 10 != 9;
 "foobar"
 "foo bar"
+"{\"aaa\": \"bbb\"}"
 `
 
 	tests := []struct {
@@ -127,6 +128,8 @@ if (5 < 10) {
 		{token.STRING, "foobar"},
 		// "foo bar"
 		{token.STRING, "foo bar"},
+		// "{"aaa": "bbb"}"
+		{token.STRING, `{"aaa": "bbb"}`},
 
 		// EOF
 		{token.EOF, ""},

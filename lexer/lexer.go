@@ -1,6 +1,11 @@
 package lexer
 
-import "github.com/takuyamashita/go-interpreter/token"
+import (
+	"bytes"
+	"log"
+
+	"github.com/takuyamashita/go-interpreter/token"
+)
 
 type Lexer struct {
 	input        string
@@ -219,17 +224,53 @@ func (l *Lexer) readString() string {
 	// "foobar"
 	// ^current position
 	position := l.position + 1
+	escapePositions := []int{}
+
+	// \"foobar\"
+	// {\"aaa\": \"bbb\"}
 
 	// Read characters until we encounter a double quote.
 	for {
+
+		log.Printf("l.ch: %v", string(l.ch))
+
 		l.readChar()
-		if l.ch == '"' || l.ch == 0 {
+
+		if l.ch == '\\' && l.peekChar() == '"' {
+			escapePositions = append(escapePositions, l.position)
+			l.readChar()
+			continue
+		}
+
+		if l.ch == 0 || l.ch == '"' {
 			break
 		}
 	}
 
 	// "foobar"
 	//        ^current position
+
+	if len(escapePositions) > 0 {
+
+		var str bytes.Buffer
+
+		posLen := len(escapePositions)
+
+		for i := 0; i < posLen; i++ {
+
+			escPos := escapePositions[i]
+
+			if i == 0 {
+				str.WriteString(l.input[position:escPos])
+			} else {
+				str.WriteString(l.input[escapePositions[i-1]+1 : escPos])
+			}
+		}
+
+		str.WriteString(l.input[escapePositions[posLen-1]+1 : l.position])
+
+		return str.String()
+	}
 
 	// Return the string from the saved position to the current position.
 	// ['"', 'f', 'o', 'o', 'b', 'a', 'r', '"']
