@@ -35,6 +35,9 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 	case *ast.IfExpression:
 		return evalIfExpression(node, env)
 
+	case *ast.Identifier:
+		return evalIdentifier(node, env)
+
 	case *ast.PrefixExpression:
 
 		right := Eval(node.Right, env)
@@ -107,6 +110,21 @@ func evalProgram(program *ast.Program, env *object.Environment) object.Object {
 	}
 
 	return result
+}
+
+func evalIdentifier(node *ast.Identifier, env *object.Environment) object.Object {
+
+	// let a = 3 + 4;
+	//     ^ this is identifier
+	// a is in the environment by evalLetStatement
+
+	val, ok := env.Get(node.Value)
+
+	if !ok {
+		return newError("identifier not found: " + node.Value)
+	}
+
+	return val
 }
 
 func evalBlockStatement(block *ast.BlockStatement, env *object.Environment) object.Object {
