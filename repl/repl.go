@@ -7,6 +7,7 @@ import (
 
 	"github.com/takuyamashita/go-interpreter/evaluator"
 	"github.com/takuyamashita/go-interpreter/lexer"
+	"github.com/takuyamashita/go-interpreter/object"
 	"github.com/takuyamashita/go-interpreter/parser"
 )
 
@@ -29,13 +30,14 @@ func Start(in io.Reader, out io.Writer) {
 		p := parser.New(l)
 
 		progrom := p.ParseProgram()
+		env := object.NewEnvironment()
 
 		if len(p.Errors()) != 0 {
 			printParserErrors(out, p.Errors())
 			continue
 		}
 
-		evaluated := evaluator.Eval(progrom)
+		evaluated := evaluator.Eval(progrom, env)
 		if evaluated != nil {
 			io.WriteString(out, evaluated.Inspect())
 			io.WriteString(out, "\n")
