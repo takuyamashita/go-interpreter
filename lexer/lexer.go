@@ -2,7 +2,6 @@ package lexer
 
 import (
 	"bytes"
-	"log"
 
 	"github.com/takuyamashita/go-interpreter/token"
 )
@@ -231,8 +230,6 @@ func (l *Lexer) readString() string {
 
 	// Read characters until we encounter a double quote.
 	for {
-
-		log.Printf("l.ch: %v", string(l.ch))
 
 		l.readChar()
 
